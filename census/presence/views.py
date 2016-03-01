@@ -71,4 +71,8 @@ def import_data_from_files(request):
 
 
 def index(request):
-    return HttpResponse('Index Page!')
+    return render(request, 'presence/panel.html')
+
+
+def login(request):
+    return render(request, 'presence/login.html')
