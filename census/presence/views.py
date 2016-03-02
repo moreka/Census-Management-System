@@ -9,7 +9,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 
 from presence import models
-from presence.models import PresenceData
+from presence.models import PresenceData, User
 
 
 class FileFormatError(Exception):
@@ -76,8 +76,22 @@ def import_data_from_files(request):
 
 
 def index(request):
-    return render(request, 'presence/panel.html')
+    if 'username' in request.session and request.session['username'] != None:
+        user = request.session['username']
+        return render(request, 'presence/panel.html')
+    else:
+        return redirect('login')
 
 
 def login(request):
-    return render(request, 'presence/login.html')
+    print(request.method)
+    if request.method == 'GET':
+        return render(request, 'presence/login.html')
+    else:
+        username = request.POST['username']
+
+        if len(User.objects.filter(username=username).all()) == 0:
+            return redirect('index')
+
+        request.session['username'] = User.objects.get(username=username)
+        return redirect('index')
