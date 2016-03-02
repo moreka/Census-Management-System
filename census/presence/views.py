@@ -2,6 +2,8 @@ import os
 import re
 
 import datetime
+
+import sys
 from django.db import IntegrityError
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
@@ -29,8 +31,8 @@ def get_start_end_times_from_datafile(data):
 
 
 def import_data_from_files(request):
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    data_path = os.path.join(BASE_DIR, 'Data/hozoor/data')
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    data_path = os.path.join(base_dir, 'Data/hozoor/data')
 
     users = []
     for user_filename in os.listdir(data_path):
@@ -66,7 +68,9 @@ def import_data_from_files(request):
                                 in_time=start,
                                 out_time=end)
                         except FileFormatError as e:
-                            print(e)
+                            sys.stderr.write(e)
+                        except IntegrityError:
+                            pass
 
     return redirect('index')
 
