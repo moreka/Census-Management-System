@@ -29,7 +29,8 @@ def get_start_end_times_from_datafile(data):
 
 
 def import_data_from_files(request):
-    data_path = '/Users/moreka/Desktop/Scrum Project/hozoor/data/'
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    data_path = os.path.join(BASE_DIR, 'Data/hozoor/data')
 
     users = []
     for user_filename in os.listdir(data_path):
