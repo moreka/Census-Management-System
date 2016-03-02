@@ -5,5 +5,6 @@ from presence import views
 urlpatterns = [
     url(r'^import/$', views.import_data_from_files, name='import'),
     url(r'^login/$', views.login, name='login'),
+    url(r'^logout/$', views.logout, name='logout'),
     url(r'^$', views.index, name='index'),
 ]

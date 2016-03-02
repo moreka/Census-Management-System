@@ -16,6 +16,8 @@ class User(models.Model):
 
     def get_mean_in_time_in_month(self, year, month):
         data = self.presencedata_set.filter(date_month=month, date_year=year).all()
+        if len(data) == 0:
+            return datetime.time()
 
         mean_minutes = int(sum([i.in_time.hour * 60 + i.in_time.minute for i in data]) / len(data))
 

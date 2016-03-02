@@ -5,11 +5,9 @@ import datetime
 
 import sys
 from django.db import IntegrityError
-from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 
 from presence import models
-from presence.models import PresenceData, User
 
 
 class FileFormatError(Exception):
@@ -60,7 +58,7 @@ def import_data_from_files(request):
                         data = open(os.path.join(day_data_path, daily_file), 'r').read()
                         try:
                             start, end = get_start_end_times_from_datafile(data)
-                            PresenceData.objects.create(
+                            models.PresenceData.objects.create(
                                 user=user,
                                 date_year=int(year),
                                 date_month=int(month),
@@ -76,22 +74,43 @@ def import_data_from_files(request):
 
 
 def index(request):
-    if 'username' in request.session and request.session['username'] != None:
-        user = request.session['username']
-        return render(request, 'presence/panel.html')
+    if 'username' in request.session and request.session['username'] != '':
+        user = models.User.objects.get(username=request.session['username'])
+        year_range = (
+            min([it.date_year for it in models.PresenceData.objects.all()]),
+            max([it.date_year for it in models.PresenceData.objects.all()])
+        )
+        ctx = {'month_items': [], 'username': request.session['username']}
+
+        for year in range(year_range[0], year_range[1] + 1):
+            for month in range(1, 13):
+                total_in_month = user.get_presence_in_month(year, month)
+                if total_in_month.total_seconds() != 0:
+                    ctx['month_items'].append({
+                        'year': year,
+                        'month': month,
+                        'arrival': user.get_mean_in_time_in_month(year, month),
+                        'total': total_in_month
+                    })
+
+        return render(request, 'presence/panel.html', ctx)
     else:
         return redirect('login')
 
 
 def login(request):
-    print(request.method)
     if request.method == 'GET':
         return render(request, 'presence/login.html')
     else:
         username = request.POST['username']
 
-        if len(User.objects.filter(username=username).all()) == 0:
+        if len(models.User.objects.filter(username=username).all()) == 0:
             return redirect('index')
 
-        request.session['username'] = User.objects.get(username=username)
+        request.session['username'] = username
         return redirect('index')
+
+
+def logout(request):
+    del request.session['username']
+    return redirect('login')
